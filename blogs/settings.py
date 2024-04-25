@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
+
 import os
 from pathlib import Path
 
@@ -39,6 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "rest_framework_simplejwt.token_blacklist",
 ]
 
 MIDDLEWARE = [
@@ -80,13 +82,13 @@ DB_PASS_FILE = os.getenv("DB_PASS_FILE", "db/password.txt")
 with open(DB_PASS_FILE) as pass_file:
     password = pass_file.read()
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'blogs',
-        'USER': "postgres",
-        'PASSWORD': password,
-        'HOST': "localhost",  # Service name of the PostgreSQL container in Docker Compose
-        'PORT': "5432",
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "blogs",
+        "USER": "postgres",
+        "PASSWORD": password,
+        "HOST": "localhost",  # Service name of the PostgreSQL container in Docker Compose
+        "PORT": "5432",
     }
 }
 
@@ -131,3 +133,9 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+}

@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from blogposts.models import BlogPost
 
@@ -15,11 +16,13 @@ class BlogPostViewSetTestCase(TestCase):
         response = self.client.get(reverse("plural"))
 
         # prove auth is necessary
-        self.assertEqual(response.status_code, 403)
-        self.client.force_login(self.user)
+        self.assertEqual(response.status_code, 401)
+        refresh = RefreshToken.for_user(self.user)
+        self.access_token = str(refresh.access_token)
+        headers = {"Authorization": f"Bearer {self.access_token}"}
 
         # now authenticated
-        response = self.client.get(reverse("plural"))
+        response = self.client.get(reverse("plural"), headers=headers)
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.data, list)
         self.assertEqual(response.data, [])
@@ -33,11 +36,13 @@ class BlogPostViewSetTestCase(TestCase):
 
         # prove auth is necessary
         response = self.client.get(reverse("plural"))
-        self.assertEqual(response.status_code, 403)
-        self.client.force_login(self.user)
+        self.assertEqual(response.status_code, 401)
+        refresh = RefreshToken.for_user(self.user)
+        self.access_token = str(refresh.access_token)
+        headers = {"Authorization": f"Bearer {self.access_token}"}
 
         # now authenticated
-        response = self.client.get(reverse("plural"))
+        response = self.client.get(reverse("plural"), headers=headers)
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.data, list)
         expected_data = {
@@ -60,14 +65,21 @@ class BlogPostViewSetTestCase(TestCase):
 
         # prove auth is necessary
         response = self.client.post(
-            reverse("plural"), data=data, content_type="application/json"
+            reverse("plural"),
+            data=data,
+            content_type="application/json",
         )
-        self.assertEqual(response.status_code, 403)
-        self.client.force_login(self.user)
+        self.assertEqual(response.status_code, 401)
+        refresh = RefreshToken.for_user(self.user)
+        self.access_token = str(refresh.access_token)
+        headers = {"Authorization": f"Bearer {self.access_token}"}
 
         # now authenticated
         response = self.client.post(
-            reverse("plural"), data=data, content_type="application/json"
+            reverse("plural"),
+            data=data,
+            content_type="application/json",
+            headers=headers,
         )
         self.assertEqual(response.status_code, 201)
         self.assertTrue(BlogPost.objects.filter(title="Fake Title").exists())
@@ -82,12 +94,17 @@ class BlogPostViewSetTestCase(TestCase):
         response = self.client.post(
             reverse("plural"), data=data, content_type="application/json"
         )
-        self.assertEqual(response.status_code, 403)
-        self.client.force_login(self.user)
+        self.assertEqual(response.status_code, 401)
+        refresh = RefreshToken.for_user(self.user)
+        self.access_token = str(refresh.access_token)
+        headers = {"Authorization": f"Bearer {self.access_token}"}
 
         # now authenticated
         response = self.client.post(
-            reverse("plural"), data=data, content_type="application/json"
+            reverse("plural"),
+            data=data,
+            content_type="application/json",
+            headers=headers,
         )
         self.assertEqual(response.status_code, 400)
 
@@ -101,11 +118,13 @@ class BlogPostsViewSetSingularTestCase(TestCase):
     def test_get_singular__no_blogposts__404(self):
         # prove auth is necessary
         response = self.client.get(reverse("singular", args=(1,)))
-        self.assertEqual(response.status_code, 403)
-        self.client.force_login(self.user)
+        self.assertEqual(response.status_code, 401)
+        refresh = RefreshToken.for_user(self.user)
+        self.access_token = str(refresh.access_token)
+        headers = {"Authorization": f"Bearer {self.access_token}"}
 
         # now authenticated
-        response = self.client.get(reverse("singular", args=(1,)))
+        response = self.client.get(reverse("singular", args=(1,)), headers=headers)
         self.assertEqual(response.status_code, 404)
 
     def test_get_singular__blogpost_exists__200(self):
@@ -116,18 +135,22 @@ class BlogPostsViewSetSingularTestCase(TestCase):
 
         # prove auth is necessary
         response = self.client.get(reverse("singular", args=(blogpost.pk,)))
-        self.assertEqual(response.status_code, 403)
-        self.client.force_login(self.user)
+        self.assertEqual(response.status_code, 401)
+        refresh = RefreshToken.for_user(self.user)
+        self.access_token = str(refresh.access_token)
+        headers = {"Authorization": f"Bearer {self.access_token}"}
 
         # now authenticated
-        response = self.client.get(reverse("singular", args=(blogpost.pk,)))
+        response = self.client.get(
+            reverse("singular", args=(blogpost.pk,)), headers=headers
+        )
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.data, dict)
         self.assertEqual(response.data["title"], blogpost.title)
 
         # Also prove it's not a false positive
         #  0 can't be a PK
-        response = self.client.get(reverse("singular", args=(0,)))
+        response = self.client.get(reverse("singular", args=(0,)), headers=headers)
         self.assertEqual(response.status_code, 404)
 
     def test_put_singular__blogpost_exists_200(self):
@@ -143,14 +166,17 @@ class BlogPostsViewSetSingularTestCase(TestCase):
             data=data,
             content_type="application/json",
         )
-        self.assertEqual(response.status_code, 403)
-        self.client.force_login(self.user)
+        self.assertEqual(response.status_code, 401)
+        refresh = RefreshToken.for_user(self.user)
+        self.access_token = str(refresh.access_token)
+        headers = {"Authorization": f"Bearer {self.access_token}"}
 
         # now authenticated
         response = self.client.put(
             reverse("singular", args=(blogpost.pk,)),
             data=data,
             content_type="application/json",
+            headers=headers,
         )
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.data, dict)
@@ -167,14 +193,17 @@ class BlogPostsViewSetSingularTestCase(TestCase):
             data=data,
             content_type="application/json",
         )
-        self.assertEqual(response.status_code, 403)
-        self.client.force_login(self.user)
+        self.assertEqual(response.status_code, 401)
+        refresh = RefreshToken.for_user(self.user)
+        self.access_token = str(refresh.access_token)
+        headers = {"Authorization": f"Bearer {self.access_token}"}
 
         # now authenticated
         response = self.client.put(
             reverse("singular", args=(3,)),
             data=data,
             content_type="application/json",
+            headers=headers,
         )
         self.assertEqual(response.status_code, 404)
 
@@ -185,11 +214,15 @@ class BlogPostsViewSetSingularTestCase(TestCase):
         blogpost.save()
         # prove auth is necessary
         response = self.client.delete(reverse("singular", args=(blogpost.pk,)))
-        self.assertEqual(response.status_code, 403)
-        self.client.force_login(self.user)
+        self.assertEqual(response.status_code, 401)
+        refresh = RefreshToken.for_user(self.user)
+        self.access_token = str(refresh.access_token)
+        headers = {"Authorization": f"Bearer {self.access_token}"}
 
         # now authenticated
-        response = self.client.delete(reverse("singular", args=(blogpost.pk,)))
+        response = self.client.delete(
+            reverse("singular", args=(blogpost.pk,)), headers=headers
+        )
         self.assertEqual(response.status_code, 204)
 
         self.assertEqual(0, BlogPost.objects.all().count())
@@ -199,9 +232,11 @@ class BlogPostsViewSetSingularTestCase(TestCase):
         self.assertEqual(0, BlogPost.objects.all().count())
         # prove auth is necessary
         response = self.client.delete(reverse("singular", args=(3,)))
-        self.assertEqual(response.status_code, 403)
-        self.client.force_login(self.user)
+        self.assertEqual(response.status_code, 401)
+        refresh = RefreshToken.for_user(self.user)
+        self.access_token = str(refresh.access_token)
+        headers = {"Authorization": f"Bearer {self.access_token}"}
 
         # now authenticated
-        response = self.client.delete(reverse("singular", args=(3,)))
+        response = self.client.delete(reverse("singular", args=(3,)), headers=headers)
         self.assertEqual(response.status_code, 404)
