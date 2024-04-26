@@ -26,4 +26,4 @@ volumes:
     name: blog-db-data-local
 secrets:
   db-password:
-    file: db/password.txt
+    file: secrets/password.txt

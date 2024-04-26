@@ -41,14 +41,15 @@ COPY poetry.lock pyproject.toml /app/
 
 RUN poetry install --without dev
 
-# Switch to the non-privileged user to run the application.
-USER appuser
-
 # Copy the source code into the container.
 COPY . .
 
-# Expose the port that the application listens on.
-EXPOSE 8000
+# Change the ownership of the entrypoint.sh file to the appeaser user
+RUN chown appuser:appuser /app/entrypoint.sh
+# Set the execute permission for the entrypoint.sh file
+RUN chmod +x /app/entrypoint.sh
 
-# Run the application.  TODO replace this with a real webserver like gunicorn
-CMD python manage.py runserver 0.0.0.0:8000
+# Switch to the non-privileged user to run the application.
+USER appuser
+
+CMD ["/bin/bash", "/app/entrypoint.sh"]

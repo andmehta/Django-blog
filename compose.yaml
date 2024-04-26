@@ -3,16 +3,17 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    restart: on-failure
     build: .
     secrets:
       - db-password
     ports:
       - "8000:8000"
     environment:
-      DB_USER: postgres
       DB_PASS_FILE: /run/secrets/db-password
+      DJANGO_SUPERUSER_PASSWORD: superuser-password
       DB_HOST: postgres
-      DB_PORT: 5432
+    entrypoint: /app/entrypoint.sh
     develop:
       watch:
         - action: sync
@@ -42,4 +43,4 @@ volumes:
    name: blog-db-data-local-env
 secrets:
  db-password:
-   file: db/password.txt
+   file: secrets/password.txt
